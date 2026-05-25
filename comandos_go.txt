@@ -1,0 +1,5 @@
+Ambiente        | Comando
+-------------------------------
+"Linux/macOS"   | GO111MODULE=off go build -o update-go-work update-go-work.go
+"Windows CMD"   | set GO111MODULE=off && go build -o update-go-work update-go-work.go
+"PowerShell"    | $env:GO111MODULE="off"; go build -o update-go-work update-go-work.go
