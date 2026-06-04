@@ -16,6 +16,19 @@ func main() {
 	})
 	fmt.Println("Valor da lista: ", lista)
 
+	//map
+	lista = lista.Map(func(i int) int {
+		return i * 2
+	})
+	fmt.Println("Valor da lista: ", lista)
+
+	//reduce
+	resultado := lista.Reduce(func(acc int, i int) int {
+		return acc + i
+	})
+
+	fmt.Println("Valor da lista: ", resultado)
+
 }
 
 func (m mySlice) Filter(cond func(int) bool) mySlice {
@@ -24,6 +37,22 @@ func (m mySlice) Filter(cond func(int) bool) mySlice {
 		if cond(numero) {
 			result = append(result, numero)
 		}
+	}
+	return result
+}
+
+func (m mySlice) Map(transform func(int) int) mySlice {
+	var result mySlice
+	for _, numero := range m {
+		result = append(result, transform(numero))
+	}
+	return result
+}
+
+func (m mySlice) Reduce(acc func(int, int) int) int {
+	var result int
+	for _, numero := range m {
+		result = acc(result, numero)
 	}
 	return result
 }
