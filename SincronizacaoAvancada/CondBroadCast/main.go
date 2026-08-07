@@ -40,23 +40,66 @@ func worker(id int, t *Trava, wg *sync.WaitGroup) {
 
 func main() {
 
-	var (
-		qtdeWorkers = 5
-		trava       = NovaTrava()
-		wg          sync.WaitGroup
-	)
+	{ // bloco de escopo para limitar a vida útil das variáveis
+		logf("Main 1: iniciando workers e aguardando liberação da trava")
+		var (
+			qtdeWorkers = 5
+			trava       = NovaTrava()
+			wg          sync.WaitGroup
+		)
 
-	wg.Add(qtdeWorkers)
+		wg.Add(qtdeWorkers)
 
-	for i := 0; i < qtdeWorkers; i++ {
-		go worker(i, trava, &wg)
+		for i := 0; i < qtdeWorkers; i++ {
+			go worker(i, trava, &wg)
+		}
+		time.Sleep(time.Microsecond * 500)
+		trava.mu.Lock()
+		trava.liberada = true
+		logf("Main: liberando trava e notificando todos os workers")
+		trava.cond.Broadcast()
+		trava.mu.Unlock()
+		wg.Wait()
 	}
-	time.Sleep(time.Microsecond * 500)
-	trava.mu.Lock()
-	trava.liberada = true
-	logf("Main: liberando trava e notificando todos os workers")
-	trava.cond.Broadcast()
-	trava.mu.Unlock()
-	wg.Wait()
+	{
+		logf("Signal 2: iniciando workers e aguardando liberação da trava")
+		var (
+			qtdeWorkers = 4
+			trava       = NovaTrava()
+			wg          sync.WaitGroup
+		)
+
+		wg.Add(qtdeWorkers)
+
+		for i := 0; i < qtdeWorkers; i++ {
+			go worker(i, trava, &wg)
+		}
+		time.Sleep(time.Microsecond * 500)
+		trava.mu.Lock()
+		trava.liberada = true
+		logf("Signal: liberando trava e notificando um worker")
+		trava.cond.Signal()
+		trava.mu.Unlock()
+
+		time.Sleep(time.Microsecond * 300)
+		trava.mu.Lock()
+		logf("Signal: call signal again to notify another worker")
+		trava.cond.Signal()
+		trava.mu.Unlock()
+
+		time.Sleep(time.Microsecond * 200)
+		trava.mu.Lock()
+		logf("Signal: call signal again to notify another worker")
+		trava.cond.Signal()
+		trava.mu.Unlock()
+
+		time.Sleep(time.Microsecond * 100)
+		trava.mu.Lock()
+		logf("Signal: call signal again to notify another worker")
+		trava.cond.Signal()
+		trava.mu.Unlock()
+
+		wg.Wait()
+	}
 
 }
